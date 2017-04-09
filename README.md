@@ -16,5 +16,7 @@ git submodule update
 ```
 
 ## Usage
-`python fnc-1.py`
+```
+python fnc-1.py
+```
 During the first run, models and features will be generated for the first time, which may take several hours. Subsequent runs will use cached data, stored in the `caches` directory.
