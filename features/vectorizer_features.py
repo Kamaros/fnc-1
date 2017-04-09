@@ -144,6 +144,8 @@ class WordVectorCentroidVectorizer(Feature):
 
         def word_vector_centroid(doc):
             valid_words = [word for word in doc if word in word2vec_model.vocab]
+            if len(valid_words) == 0:
+                return np.zeros(300)
             return np.mean(word2vec_model[valid_words], axis=0)
 
         tqdm.pandas(desc='Headline -> word2vec')

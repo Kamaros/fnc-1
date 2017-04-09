@@ -60,11 +60,13 @@ class WMDSimilarity(Feature):
         return cls.wmd_similarities
 
 class WordOverlapSimilarity(Feature):
-    """Jaccard distance, the overlap ration of words contained in both the headline and footer."""
+    """Jaccard distance, the overlap ratio of words contained in both the headline and footer."""
     @staticmethod
     def overlap(row):
         headline = row['Headline'].split()
         body = row['articleBody'].split()
+        if len(headline) == 0 and len(body) == 0:
+            return 0
         return jaccard(headline, body)
 
     @classmethod
