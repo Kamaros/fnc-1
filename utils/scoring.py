@@ -2,6 +2,7 @@
 Scorer for the Fake News Challenge. 
 Adapted from https://github.com/FakeNewsChallenge/fnc-1/blob/master/scorer.py.
 """
+import numpy as np
 
 LABELS = ['agree', 'disagree', 'discuss', 'unrelated']
 RELATED = LABELS[0:3]
@@ -22,6 +23,38 @@ TEST - score based on the provided predictions
 
 class FNCException(Exception):
     pass
+
+def lgbm_score(y_true, y_pred):
+    """Calculates the score for a submission, returning results in the form required by LightBGM for training.
+
+    Scoring is as follows:
+        +0.25 for each correct unrelated
+        +0.25 for each correct related (label is any of agree, disagree, discuss)
+        +0.75 for each correct agree, disagree, or discuss
+
+    Parameters
+    ----------
+    y_true : list (len n)
+        True class labels.
+    y_pred : list(list) (shape n x 4)
+        Predicted class probabilities.
+
+    Returns
+    -------
+    score : (str, float, Boolean)
+        A tuple where the first element is a name ('score'), the second is the score itself, and the third is a Boolean signifying that the score should be maximized.
+    """
+    UNRELATED = 3
+    score = 0.0
+    test_labels = [np.argmax(labels) for labels in test_labels]
+    for (t, p) in zip(y_true, y_pred):
+        if t == p:
+            score += 0.25
+            if t != UNRELATED:
+                score += 0.5
+        if t != UNRELATED and p != UNRELATED:
+            score += 0.25
+    return ('score', score, True)
 
 def score_submission(gold_labels, test_labels):
     """Calculates the score and confusion matrix for a submission.

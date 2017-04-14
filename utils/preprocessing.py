@@ -4,7 +4,6 @@ from sklearn.preprocessing import LabelEncoder
 from textacy.doc import Doc
 from textacy.preprocess import preprocess_text
 
-from .dataset import Dataset
 from .notebook import in_notebook
 
 if in_notebook():
@@ -60,7 +59,7 @@ def preprocess_dataframe(dataframe, key):
     preprocessed : Pandas DataFrame
         The preprocessed DataFrame.
     """
-    filename = 'caches/preprocessing/' + key + '.h5'
+    filename = 'caches/preprocessing/{}.h5'.format(key)
 
     if not os.path.isfile(filename):
         data = dataframe.copy()
