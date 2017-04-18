@@ -2,7 +2,7 @@ from classifier import train_classifier
 from features import extract_features, flatten_features, scale_features, decompose_features, select_features
 from utils.dataset import read_dataset, generate_hold_out_split
 from utils.preprocessing import preprocess_dataframe, extract_labels, decipher_labels
-from utils.scoring import lgbm_score, evaluate_submission
+from utils.scoring import evaluate_submission
 
 if __name__ == "__main__":
     # Extract and preprocess dataset
@@ -39,7 +39,6 @@ if __name__ == "__main__":
 
     print('Training classifier...')
     classifier = train_classifier(training_features, training_labels)
-    print(classifier.cv_results_)
     predictions = raw_testing_data.copy()
     predictions['Stance'] = decipher_labels(classifier.predict(testing_features), index=testing_features.index)
     evaluate_submission(raw_testing_data, predictions)

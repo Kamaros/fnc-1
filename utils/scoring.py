@@ -165,5 +165,6 @@ def evaluate_submission(gold_labels, test_labels):
         null_score, max_score = score_defaults(gold_labels)
         print_confusion_matrix(cm)
         print(SCORE_REPORT.format(max_score, null_score, test_score))
+        print('{}% score achieved'.format(test_score/max_score*100))
     except FNCException as e:
         print(e)
