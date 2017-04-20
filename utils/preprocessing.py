@@ -1,5 +1,7 @@
 import os
+import numpy as np
 import pandas as pd
+from imblearn.over_sampling import ADASYN, SMOTE, RandomOverSampler
 from sklearn.preprocessing import LabelEncoder
 from textacy.doc import Doc
 from textacy.preprocess import preprocess_text
@@ -91,7 +93,7 @@ def extract_labels(dataframe):
     """
     encoder = LabelEncoder()
     encoder.fit(['unrelated', 'discuss', 'agree', 'disagree'])
-    return encoder.transform(dataframe['Stance'].values)
+    return pd.DataFrame({'Stance': encoder.transform(dataframe['Stance'].values)}, index=dataframe.index)
 
 def decipher_labels(labels, index):
     """Converts numerically encoded labels back into textual stances.
@@ -109,3 +111,51 @@ def decipher_labels(labels, index):
     encoder = LabelEncoder()
     encoder.fit(['unrelated', 'discuss', 'agree', 'disagree'])
     return pd.DataFrame({'Stance': encoder.inverse_transform(labels)}, index=index)
+
+def oversample_minority_classes(features, labels):
+    """Oversamples a dataset's minority classes using the SMOTE algorithm.
+
+    Due to limitations with the implementation, the resultant dataset will remain unbalanced, with twice as many 'unrelated' samples as other classes.
+
+    Parameters
+    ----------
+    features : Pandas DataFrame
+        DataFrame containing numeric features.
+    labels : Pandas DataFrame
+        DataFrame containing numeric stance labels.
+
+    Returns
+    -------
+    sampled_features : numpy ndarray
+        ndarray containing oversampled features.
+    sampled_labels : numpy array
+        array containing oversampled labels.
+    """
+    agree_labels = labels[labels['Stance'] == 0]
+    disagree_labels = labels[labels['Stance'] == 1]
+    discuss_labels = labels[labels['Stance'] == 2]
+    unrelated_labels = labels[labels['Stance'] == 3]
+
+    agree_features = features.loc[agree_labels.index]
+    disagree_features = features.loc[disagree_labels.index]
+    discuss_features = features.loc[discuss_labels.index]
+    unrelated_features = features.loc[unrelated_labels.index]
+
+    oversampler = SMOTE(kind='borderline2')
+
+    print('Oversampling agree group...')
+    agree_group_features = pd.concat([agree_features, unrelated_features])
+    agree_group_labels = pd.concat([agree_labels, unrelated_labels])
+    agree_group_features, agree_group_labels = oversampler.fit_sample(agree_group_features, agree_group_labels.values.ravel())
+
+    print('Oversampling disagree group...')
+    disagree_group_features = pd.concat([disagree_features, unrelated_features])
+    disagree_group_labels = pd.concat([disagree_labels, unrelated_labels])
+    disagree_group_features, disagree_group_labels = oversampler.fit_sample(disagree_group_features, disagree_group_labels.values.ravel())
+
+    print('Oversampling discuss group...')
+    discuss_group_features = pd.concat([discuss_features, unrelated_features])
+    discuss_group_labels = pd.concat([discuss_labels, unrelated_labels])
+    discuss_group_features, discuss_group_labels = oversampler.fit_sample(discuss_group_features, discuss_group_labels.values.ravel())
+
+    return np.concatenate((agree_group_features, disagree_group_features, discuss_group_features)), np.concatenate((agree_group_labels, disagree_group_labels, discuss_group_labels))
