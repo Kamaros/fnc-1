@@ -1,6 +1,6 @@
 # fnc-1
 Submission for the [Fake News Challenge](http://www.fakenewschallenge.org).
-Pipeline consist of text preprocessing, feature extraction, splitting, minority-class oversampling, followed by classification using LightGBM.
+The pipeline consists of text preprocessing, feature extraction, test-split generation, minority-class oversampling, followed by training and prediction using [LightGBM](https://github.com/Microsoft/LightGBM).
 
 ## Installation
 This implementation was built and tested on Python 3.5. Dependencies can be installed via the following commands:
