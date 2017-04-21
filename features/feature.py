@@ -16,7 +16,7 @@ class Feature(ABC):
         pass
 
     @classmethod
-    def transform(cls, dataframe, key):
+    def transform(cls, dataframe, key=None):
         """Returns features, given a DataFrame containing a set of headlines and bodies.
 
         Features are read from file if previously cached, or generated then cached otherwise.
@@ -25,7 +25,7 @@ class Feature(ABC):
         ----------
         dataframe : Pandas DataFrame
             The dataframe containing a set of headlines and bodies.
-        key : str
+        key : str or None
             Key used for caching.
 
         Returns
@@ -34,7 +34,7 @@ class Feature(ABC):
             Features generated from the headlines and bodies. Can be multi-dimensional, depending on the feature generator.
         """
         feature_generator = cls.get_feature_generator()
-        filename = 'caches/features/{}.{}.pkl'.format(key, feature_generator.__name__)
+        filename = 'caches/features/{}.pkl'.format(feature_generator.__name__) if key == None else 'caches/features/{}.{}.pkl'.format(key, feature_generator.__name__)
 
         if not os.path.isfile(filename):
             features = feature_generator(dataframe)

@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from imblearn.over_sampling import ADASYN, SMOTE, RandomOverSampler
+from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import LabelEncoder
 from textacy.doc import Doc
 from textacy.preprocess import preprocess_text
