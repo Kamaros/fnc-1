@@ -59,7 +59,7 @@ def print_cv_score(estimator, features, labels, cv=3):
                 score += 0.25
         return score/max_score
     cv_scores = cross_val_score(estimator, features, labels['Stance'], scoring=score, cv=cv)
-    print('Cross validation scores: {}, AVG - {}'.format(cv_scores, np.mean(cv_scores)))
+    print('Cross validation scores: {}, AVG - {}'.format(cv_scores, np.mean(cv_scores)*100))
 
 def score_submission(gold_labels, test_labels):
     """Calculates the score and confusion matrix for a submission.

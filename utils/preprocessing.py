@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils import shuffle
 from textacy.doc import Doc
 from textacy.preprocess import preprocess_text
 
@@ -22,7 +23,7 @@ def preprocess_text_string(text):
         - fixing broken unicode via ftfy
         - converting text to lowercase
         - replacing url strings with 'url'
-        - replacing hone number strings with 'phone'
+        - replacing phone number strings with 'phone'
         - replacing currency symbols with their standard 3-letter abbreviations
         - stripping punctuation
         - replacing contractions with their unshortened forms
@@ -113,9 +114,7 @@ def decipher_labels(labels, index):
     return pd.DataFrame({'Stance': encoder.inverse_transform(labels)}, index=index)
 
 def oversample_minority_classes(features, labels):
-    """Oversamples a dataset's minority classes using the SMOTE algorithm.
-
-    Due to limitations with the implementation, the resultant dataset will remain unbalanced, with twice as many 'unrelated' samples as other classes.
+    """Oversamples a dataset's minority classes using the SVM-SMOTE algorithm.
 
     Parameters
     ----------
@@ -131,31 +130,43 @@ def oversample_minority_classes(features, labels):
     sampled_labels : numpy array
         array containing oversampled labels.
     """
-    agree_labels = labels[labels['Stance'] == 0]
-    disagree_labels = labels[labels['Stance'] == 1]
-    discuss_labels = labels[labels['Stance'] == 2]
-    unrelated_labels = labels[labels['Stance'] == 3]
+    AGREE = 0
+    DISAGREE = 1
+    DISCUSS = 2
+    UNRELATED = 3
+
+    agree_labels = labels[labels['Stance'] == AGREE]
+    disagree_labels = labels[labels['Stance'] == DISAGREE]
+    discuss_labels = labels[labels['Stance'] == DISCUSS]
+    unrelated_labels = labels[labels['Stance'] == UNRELATED]
 
     agree_features = features.loc[agree_labels.index]
     disagree_features = features.loc[disagree_labels.index]
     discuss_features = features.loc[discuss_labels.index]
     unrelated_features = features.loc[unrelated_labels.index]
 
-    oversampler = SMOTE(kind='borderline2')
+    oversampler = SMOTE(kind='svm')
 
     print('Oversampling agree group...')
     agree_group_features = pd.concat([agree_features, unrelated_features])
     agree_group_labels = pd.concat([agree_labels, unrelated_labels])
     agree_group_features, agree_group_labels = oversampler.fit_sample(agree_group_features, agree_group_labels.values.ravel())
+    agree_idx = np.where(agree_group_labels == AGREE)
+    agree_features, agree_labels = agree_group_features[agree_idx], agree_group_labels[agree_idx]
 
     print('Oversampling disagree group...')
     disagree_group_features = pd.concat([disagree_features, unrelated_features])
     disagree_group_labels = pd.concat([disagree_labels, unrelated_labels])
     disagree_group_features, disagree_group_labels = oversampler.fit_sample(disagree_group_features, disagree_group_labels.values.ravel())
+    disagree_idx = np.where(disagree_group_labels == DISAGREE)
+    disagree_features, disagree_labels = disagree_group_features[disagree_idx], disagree_group_labels[disagree_idx]
 
     print('Oversampling discuss group...')
     discuss_group_features = pd.concat([discuss_features, unrelated_features])
     discuss_group_labels = pd.concat([discuss_labels, unrelated_labels])
     discuss_group_features, discuss_group_labels = oversampler.fit_sample(discuss_group_features, discuss_group_labels.values.ravel())
+    discuss_idx = np.where(discuss_group_labels == DISCUSS)
+    discuss_features, discuss_labels = discuss_group_features[discuss_idx], discuss_group_labels[discuss_idx]
 
-    return np.concatenate((agree_group_features, disagree_group_features, discuss_group_features)), np.concatenate((agree_group_labels, disagree_group_labels, discuss_group_labels))
+    oversampled_features, oversampled_labels = np.concatenate((agree_features, disagree_features, discuss_features, unrelated_features.values)), np.concatenate((agree_labels, disagree_labels, discuss_labels, unrelated_labels.values.ravel()))
+    return shuffle(oversampled_features, oversampled_labels)
